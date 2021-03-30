@@ -1,4 +1,9 @@
-# 更新阿里云DNS
+<#
+ScriptDescription: 更新阿里云DNS
+Author: Microbubu
+Date: 2021-03-30
+GithubUrl: https://github.com/Microbubu/awesome_scripts/blob/main/powershell/update_alidns.ps1
+#>
 
 using namespace System.Collections
 using namespace System.Collections.Generic
