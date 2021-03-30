@@ -10,7 +10,8 @@ using namespace System.Security.Cryptography
 $accessKeyId = "YOUR_KEY_ID"                    # AccessKeyId
 $accessKeySecret = "YOUR_KEY_SECRET"            # AccessKeySecret
 $domainName = "microbubu.com"                   # domain eg: microbubu.com
-$dnsRR = "dns"                                  # rr eg: dns (dns.microbubu.com)
+$dnsRR = "abc"                                  # rr eg: dns (dns.microbubu.com)
+
 
 function UrlEncode {
     param (
@@ -18,6 +19,7 @@ function UrlEncode {
     )
     -join ($url.ToCharArray() | ForEach-Object { $encode = [HttpUtility]::UrlEncode($_.ToString());  if ($encode.Length -gt 1) { $encode.ToUpper() } else { $encode }})
 }
+
 
 function ComputeSignature {
     param (
@@ -30,6 +32,7 @@ function ComputeSignature {
     $hashedBytes = $hasher.ComputeHash([Encoding]::UTF8.GetBytes($stringToSign))
     [Convert]::ToBase64String($hashedBytes)
 }
+
 
 function BuildUrl {
     param (
@@ -51,6 +54,7 @@ function BuildUrl {
     "https://alidns.aliyuncs.com/?" + (($queryDict.Keys | ForEach-Object { "$_=$($queryDict[$_])" }) -join "&")
 }
 
+
 function FindDomain {
     $queryDict = @{
         Action = "DescribeDomainRecords";
@@ -67,13 +71,11 @@ function FindDomain {
             $dnsDomainNode.Value
             return
         }
+        elseif ([int]$xmlContent.DescribeDomainRecordsResponse.PageSize * [int]$xmlContent.DescribeDomainRecordsResponse.PageNumber -lt [int]$xmlContent.DescribeDomainRecordsResponse.TotalCount){
+            $queryDict.PageNumber += 1
+        }
         else {
-            if ($xmlContent.PageSize * $xmlContent.PageNumber -gt $xmlContent.TotalCount){
-                return
-            }
-            else { 
-                $queryDict.PageNumber += 1
-            }
+            return $null
         }
     } while ($true)
 }
