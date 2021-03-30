@@ -75,7 +75,7 @@ function FindDomain {
                 $queryDict.PageNumber += 1
             }
         }
-    } while (1 -eq 1)
+    } while ($true)
 }
 
 
