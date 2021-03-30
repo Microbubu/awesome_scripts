@@ -10,7 +10,7 @@ using namespace System.Security.Cryptography
 $accessKeyId = "YOUR_KEY_ID"                    # AccessKeyId
 $accessKeySecret = "YOUR_KEY_SECRET"            # AccessKeySecret
 $domainName = "microbubu.com"                   # domain eg: microbubu.com
-$dnsRR = "abc"                                  # rr eg: dns (dns.microbubu.com)
+$dnsRR = "dns"                                  # rr eg: dns (dns.microbubu.com)
 
 
 function UrlEncode {
@@ -67,9 +67,7 @@ function FindDomain {
         [xml]$xmlContent = (Invoke-WebRequest -Uri $url -Method "GET").Content
         $dnsDomainNode = ($xmlContent | Select-Xml -XPath "/DescribeDomainRecordsResponse/DomainRecords/Record[RR='$dnsRR']" | Select-Object -ExpandProperty node)
         if ($null -ne $dnsDomainNode){
-            $dnsDomainNode.RecordId
-            $dnsDomainNode.Value
-            return
+            return $dnsDomainNode.RecordId, $dnsDomainNode.Value
         }
         elseif ([int]$xmlContent.DescribeDomainRecordsResponse.PageSize * [int]$xmlContent.DescribeDomainRecordsResponse.PageNumber -lt [int]$xmlContent.DescribeDomainRecordsResponse.TotalCount){
             $queryDict.PageNumber += 1
@@ -83,8 +81,7 @@ function FindDomain {
 
 $dnsDomain = FindDomain
 if ($null -ne $dnsDomain){
-    $recordId = $dnsDomain[0]
-    $ipValue = $dnsDomain[1]
+    $recordId, $ipValue = $dnsDomain
     $myIp = (Invoke-WebRequest -Uri "http://whatismyip.akamai.com").Content
     if ($ipValue -ne $myIp){
         $queryDict = @{
