@@ -6,7 +6,7 @@ using namespace System.Text
 using namespace System.Web
 using namespace System.Security.Cryptography
 
-$aliUrlPrefix = "https://alidns.aliyuncs.com/?"
+
 $accessKeyId = "YOUR_KEY_ID"                    # AccessKeyId
 $accessKeySecret = "YOUR_KEY_SECRET"            # AccessKeySecret
 $domainName = "microbubu.com"                   # domain eg: microbubu.com
@@ -24,7 +24,7 @@ function ComputeSignature {
         [string]$method,
         [hashtable]$paramDict
     )
-    $combinedParams = ($paramDict.Keys | Sort-Object -CaseSensitive | ForEach-Object { "$(UrlEncode $_)=$(UrlEncode $paramDict[$_])" }) -join "&"
+    $combinedParams = ($paramDict.Keys | Sort-Object { -join ([int[]] $_.ToCharArray()).ForEach('ToString', 'x4') } | ForEach-Object { "$(UrlEncode $_)=$(UrlEncode $paramDict[$_])" }) -join "&"
     $stringToSign = $method.ToUpper() + "&" + (UrlEncode "/") + "&" + (UrlEncode $combinedParams)
     $hasher = [HMACSHA1]::new([Encoding]::UTF8.GetBytes($accessKeySecret + "&"))
     $hashedBytes = $hasher.ComputeHash([Encoding]::UTF8.GetBytes($stringToSign))
@@ -48,7 +48,7 @@ function BuildUrl {
     }
     $paramDict.Keys | ForEach-Object { $queryDict.Add($_, $paramDict[$_]) }
     $queryDict.Signature = UrlEncode (ComputeSignature $method $queryDict)
-    $aliUrlPrefix + (($queryDict.Keys | ForEach-Object { "$_=$($queryDict[$_])" }) -join "&")
+    "https://alidns.aliyuncs.com/?" + (($queryDict.Keys | ForEach-Object { "$_=$($queryDict[$_])" }) -join "&")
 }
 
 function FindDomain {
